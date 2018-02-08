@@ -16,3 +16,4 @@ Turn debug off (it can cause problems with ampy)
     >>> esp.osdebug(None)
 
 ampy --port <COMX> run <code>.py
+
