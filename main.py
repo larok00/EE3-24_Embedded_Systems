@@ -1,14 +1,12 @@
 #Embedded system project EE3-24
 
-from machine import Pin, I2C
+from machine import Pin, I2C, unique_id
 from ujson import dumps
 
 import network
 
-import machine
+
 from umqtt.simple import MQTTClient
-
-
 
 import time
 
@@ -56,7 +54,7 @@ def connect_to_network():
 def connect_client():
 	topic = "esys/Embedded_girls(and_Koral)/flex"
 
-	client = MQTTClient(machine.unique_id(), "192.168.0.10")
+	client = MQTTClient(unique_id(), "192.168.0.10")
 	client.connect()
 
 def publish():
@@ -65,10 +63,10 @@ def publish():
 
 def test_pin():
 	# create an output pin on pin #0
-	p5 = Pin(5)
-	p5 = Pin(5, Pin.IN)
+	inputpin = Pin(14, Pin.IN)
 	# configure an irq callback
-	print(p5.value())
+	print(inputpin.value())
+	return inputpin.value()
 
 #################################################################
 
@@ -76,11 +74,9 @@ setup_i2c_connection()
 connect_to_network()
 connect_client()
 
-read_data()
-publish()
+while (test_pin()==0):
+	read_data()
+	publish()
+	time.sleep(1)
 
-time.sleep(1)
-
-read_data()
-publish()
 

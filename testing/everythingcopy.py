@@ -1,6 +1,7 @@
 #Embedded system project EE3-24
-#micropython main programme for I2C connection
 
+import time
+#micropython main programme for I2C connection
 #the code below works on the screen interface
 #set the connection
 from machine import Pin, I2C
@@ -13,6 +14,12 @@ i2c.scan()
 
 i2c.writeto(72, bytearray([0x01, 0x44, 0x23]))
 i2c.writeto(72, bytearray([0x00]))
+
+while client.disconnect():
+{
+
+time.sleep(0.5)
+
 data = i2c.readfrom(72, 2)
 int_data = int.from_bytes(data, 'big')
 
@@ -24,6 +31,7 @@ data_record = {
 
 payload = dumps(data_record)
 
+}
 ####################################################################
 
 import network
@@ -37,7 +45,7 @@ sta_if.connect('EEERover', 'exhibition')
 
 #################################################################
 
-import time
+
 time.sleep(1)
 
 if sta_if.isconnected():
@@ -57,22 +65,13 @@ client.connect()
 
 client.publish(topic, bytes(payload, 'utf-8'))
 
-###################################################################
+#########################################################
 
 time.sleep(1)
 
-###########################################################
+########################################################
 
-data = i2c.readfrom(72, 2)
-int_data = int.from_bytes(data, 'big')
-
-print(str(int_data))
-
-data_record = {
-	"reading" : int_data
-}
-
-payload = dumps(data_record)
+#removed for while loop
 
 ############################################
 
@@ -81,9 +80,6 @@ client.publish(topic, bytes(payload, 'utf-8'))
 ########################################
 from machine import Pin
 
-# create an output pin on pin #0
-p5 = Pin(5)
-p5 = Pin(5, Pin.IN)
-# configure an irq callback
-print(p5.value())
+p14 = Pin(14, Pin.IN, Pin.PULL_UP)
 
+print(p14.value())
