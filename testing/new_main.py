@@ -4,12 +4,12 @@ from machine import Pin, I2C, unique_id
 from ujson import dumps
 
 import network
-
+from math import exp
 
 from umqtt.simple import MQTTClient
 
-import time
-import utime
+import time 				#used to add time delays
+import utime				#to measure the time elapsed in using flexo
 
 def setup_i2c_connection(i2c):
 	#micropython main programme for I2C connection
@@ -23,13 +23,9 @@ def setup_i2c_connection(i2c):
 def read_data(i2c):
 	data = i2c.readfrom(72, 2)
 	int_data = int.from_bytes(data, 'big')
-	#print(str(int_data))
-
-	data_record = {"reading": int_data } 
-
-	
+	print(str(int_data))
+	data_record = {"reading": int_data }
 	payload = dumps(data_record)
-	
 	return payload
 
 def connect_to_network():
@@ -39,26 +35,6 @@ def connect_to_network():
 	sta_if = network.WLAN(network.STA_IF)
 	sta_if.active(True)
 	sta_if.connect('EEERover', 'exhibition')
-	
-	time.sleep(1)
-"""	
-	if sta_if.isconnected():
-		print("Success")
-	else:
-		print("Failure")
-"""
-
-def connect_client(client):
-	topic = "esys/Embedded_girls(and_Koral)/flex"
-	client.connect()
-
-
-def sample_func(array):
-	count = 0
-	for x in range(0,len(array)):
-		count += 1
-
-	return count 
 
 
 def publish(payload, client):
@@ -76,23 +52,29 @@ def test_pin():
 i2c = I2C(scl=Pin(5), sda=Pin(4), freq=100000)
 setup_i2c_connection(i2c)
 
+
 connect_to_network()
 
 client = MQTTClient(unique_id(), "192.168.0.10")
-connect_client(client)
+client.connect()
+
 count = 0.0
 x = 0
 firsthalf_count = False
 secondhalf_count = False
-cycle_complete = True
+cycle_complete = True				#to check if one squeeze-and-release cycle is complete 
 squeeze_strength = []
 array = []
 array2 = []
 first_time = True
 
+#threshold values
+min_value = 13200				#the minimum raw data reading we get through testing (with flexsensor unbent)	
+max_value = 19000				#the maximum raw data reading we get through testing (with flexsensor highly bent)	
+
 while (test_pin()==0): 			
 
-	if(cycle_complete == True):
+	if(cycle_complete == True):				#whenever true, array is null and we need three elements in array to do comparisons later on
 		payload = read_data(i2c)
 		array.append(payload) 
 
@@ -104,9 +86,7 @@ while (test_pin()==0):
 	payload = read_data(i2c)
 	array.append(payload)
 
-	#if (array[x] > array[x+1] and array[x+1] > array[x+2] and firsthalf_count == False):
-	#print( int(array[x][11:17]) )
-	if ((int(array[x][11:17]) - int(array[x+1][11:17]) > 1000) and (int(array[x+1][11:17]) - int(array[x+2][11:17]) > 1000) and (firsthalf_count == False)):
+	if ((int(array[x][11:17]) - int(array[x+1][11:17]) > 100) and (int(array[x+1][11:17]) - int(array[x+2][11:17]) > 100) and (firsthalf_count == False)): 
 		if(first_time ==True): 
 			start= utime.ticks_ms()			 #start measuring time as soon as someone starts using flexo 
 			first_time = False
@@ -117,7 +97,7 @@ while (test_pin()==0):
 
 	
 	if firsthalf_count == True:
-		if ((int(array[x+1][11:17]) - int(array[x][11:17]) > 1000) and (int(array[x+2][11:17]) - int(array[x+1][11:17]) > 1000) and (secondhalf_count == False)):
+		if ((int(array[x+1][11:17]) - int(array[x][11:17]) > 100) and (int(array[x+2][11:17]) - int(array[x+1][11:17]) > 100) and (secondhalf_count == False)):
 			count += 0.5
 			secondhalf_count = True
 			firsthalf_count = False
@@ -128,7 +108,11 @@ while (test_pin()==0):
 			x = -1
 
 	x += 1
-	publish(payload, client)
+
+	
+	#publish(payload, client)
+	
+
 	time.sleep(0.1)
 
 	if(x ==50):  #if 5 seconds pass and no change observed, exit
@@ -143,16 +127,20 @@ if count > 0:
 	Rate = count/(time_diff/1000)
 	print("your rate was ", Rate, " squeeze-and-release per second.")
 
-
 	for y in range(0, len(squeeze_strength)):
 		squeeze_strength_num = int(squeeze_strength[y][11:17])
 		array2.append(squeeze_strength_num)
-	
-	efficiency =  13000 *100	/ (sum(array2)/len(array2)) 
+
+	#efficiency =  (max_value - (sum(array2)/len(array2))) *100	/  (max_value - min_value)
+	"""
+	k = 3
+	exp_parameter = ((sum(array2)/len(array2)) - min_value)/(max_value - min_value)
+	efficiency = 100 * exp(-(k*exp_parameter))
+	"""
+	efficiency =  (max_value - (sum(array2)/len(array2)))**2 *100	/  (max_value - min_value)**2
+
 	print("your efficiency in this work out was ", efficiency, "%")
-
 else:
-	print("squeeze it mate")
+	print("squeeze motherfucker!")
 
-
-#testing gives min value 13000
+#lient.disconnect()
