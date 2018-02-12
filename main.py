@@ -62,7 +62,7 @@ def publish(payload, client):
 
 def test_pin():
 	# create an output pin on pin #0
-	inputpin = Pin(14, Pin.IN)
+	inputpin = Pin(14, Pin.IN, Pin.PULL_UP)
 	# configure an irq callback
 	print(inputpin.value())
 	return inputpin.value()

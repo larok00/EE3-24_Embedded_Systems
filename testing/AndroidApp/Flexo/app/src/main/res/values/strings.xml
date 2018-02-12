@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Flexo</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_1">\nYou have done:\n\n%1$d \n\nsqueezies\n</string>
+    <string name="section_2">\nYour rate: \n\n%1$d \n\nSqueezes per sec\n</string>
+    <string name="section_3">\nYour efficiency: \n\n%1$d percent\n</string>
+</resources>
