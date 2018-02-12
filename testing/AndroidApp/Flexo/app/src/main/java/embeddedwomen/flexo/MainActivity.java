@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
     MqttHelper mqttHelper;
-    String messages[] = new String[3];
+    static int[] messages = new int[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
                 Log.w("Debug", mqttMessage.toString());
-                messages[0] = mqttMessage.toString();
+                messages[0] = Integer.parseInt(mqttMessage.toString());
                 //mViewPager.setText(mqttMessage.toString());
             }
 
@@ -137,11 +137,11 @@ public class MainActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1)
-                textView.setText(getString(R.string.section_1, 5)); //change number by messages[index]
+                textView.setText(getString(R.string.section_1, messages[0]));
             else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2)
-                textView.setText(getString(R.string.section_2, 6));
+                textView.setText(getString(R.string.section_2, messages[1]));
             else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3)
-                textView.setText(getString(R.string.section_3, 75));
+                textView.setText(getString(R.string.section_3, messages[2]));
             return rootView;
         }
     }

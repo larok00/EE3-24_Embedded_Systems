@@ -12,13 +12,10 @@ import org.eclipse.paho.client.mqttv3.*;
 public class MqttHelper {
     public MqttAndroidClient mqttAndroidClient;
 
-    final String serverUri = "tcp://m12.cloudmqtt.com:11111";
+    final String serverUri = "ssl://192.168.0.10";
 
     final String clientId = "ExampleAndroidClient";
-    final String subscriptionTopic = "sensor/+";
-
-    final String username = "xxxxxxx";
-    final String password = "yyyyyyyyyy";
+    final String subscriptionTopic = "esys/Embedded_girls(and_Koral)/flex";
 
     public MqttHelper(Context context){
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
@@ -54,8 +51,6 @@ public class MqttHelper {
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(false);
-        mqttConnectOptions.setUserName(username);
-        mqttConnectOptions.setPassword(password.toCharArray());
 
         try {
 
