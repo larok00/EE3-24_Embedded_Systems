@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+
+import org.eclipse.paho.client.mqttv3.*;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    MqttHelper mqttHelper;
+    String messages[] = new String[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +53,34 @@ public class MainActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        startMqtt();
+    }
+
+    private void startMqtt(){
+        mqttHelper = new MqttHelper(getApplicationContext());
+        mqttHelper.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean b, String s) {
+
+            }
+
+            @Override
+            public void connectionLost(Throwable throwable) {
+
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+                Log.w("Debug", mqttMessage.toString());
+                messages[0] = mqttMessage.toString();
+                //mViewPager.setText(mqttMessage.toString());
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+
+            }
+        });
     }
 
 
@@ -104,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             if (getArguments().getInt(ARG_SECTION_NUMBER) == 1)
-                textView.setText(getString(R.string.section_1, 5));
+                textView.setText(getString(R.string.section_1, 5)); //change number by messages[index]
             else if (getArguments().getInt(ARG_SECTION_NUMBER) == 2)
                 textView.setText(getString(R.string.section_2, 6));
             else if (getArguments().getInt(ARG_SECTION_NUMBER) == 3)
