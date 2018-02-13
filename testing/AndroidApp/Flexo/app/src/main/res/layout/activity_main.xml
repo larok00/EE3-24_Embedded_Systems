@@ -20,4 +20,12 @@
         android:layout_gravity="bottom"
         android:src="@drawable/flexologopetit" />
 
+    <TextView
+        android:id="@+id/flexoData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="35sp"
+        android:editable="true"/>
+
 </android.support.design.widget.CoordinatorLayout>
