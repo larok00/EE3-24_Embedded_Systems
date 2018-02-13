@@ -75,16 +75,16 @@ max_value = 19000				#the maximum raw data reading we get through testing (with 
 while (test_pin()==0): 			
 
 	if(cycle_complete == True):				#whenever true, array is null and we need three elements in array to do comparisons later on
-		payload = read_data(i2c)
-		array.append(payload) 
+		reading = read_data(i2c)
+		array.append(reading)
 
-		payload = read_data(i2c)
-		array.append(payload)
+		reading = read_data(i2c)
+		array.append(reading)
 
 		cycle_complete = False
 
-	payload = read_data(i2c)
-	array.append(payload)
+	reading = read_data(i2c)
+	array.append(reading)
 
 	if ((int(array[x][11:17]) - int(array[x+1][11:17]) > 100) and (int(array[x+1][11:17]) - int(array[x+2][11:17]) > 100) and (firsthalf_count == False)): 
 		if(first_time ==True): 
