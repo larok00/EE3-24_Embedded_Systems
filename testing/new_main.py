@@ -23,7 +23,7 @@ def setup_i2c_connection(i2c):
 def read_data(i2c):
 	data = i2c.readfrom(72, 2)
 	int_data = int.from_bytes(data, 'big')
-	print(str(int_data))
+	#print(str(int_data))
 	data_record = {"reading": int_data }
 	payload = dumps(data_record)
 	return payload
@@ -44,6 +44,16 @@ def publish(payload, client):
 def test_pin():
 	inputpin = Pin(14, Pin.IN)
 	return inputpin.value()
+
+def led_lights(reading, max_value, min_value):
+	value =  (max_value - int(reading[11:17]))**2 *100	/  (max_value - min_value)**2
+
+	if (value < 70):
+		led_red.value(1)
+		led_green.value(0)
+	else:
+		led_red.value(0)
+		led_green.value(1)
 
 #################################################################
 
@@ -67,24 +77,31 @@ squeeze_strength = []
 array = []
 array2 = []
 first_time = True
+led_red = Pin(2, Pin.OUT)
+led_green = Pin(0, Pin.OUT)
+led_red.value(0)
+led_green.value(0)
 
 #threshold values
 min_value = 13200				#the minimum raw data reading we get through testing (with flexsensor unbent)	
 max_value = 19000				#the maximum raw data reading we get through testing (with flexsensor highly bent)	
 
 while (test_pin()==0): 			
-
 	if(cycle_complete == True):				#whenever true, array is null and we need three elements in array to do comparisons later on
 		reading = read_data(i2c)
 		array.append(reading)
+		led_lights(reading, max_value, min_value)
 
 		reading = read_data(i2c)
 		array.append(reading)
+		led_lights(reading, max_value, min_value)
 
 		cycle_complete = False
 
 	reading = read_data(i2c)
 	array.append(reading)
+	led_lights(reading, max_value, min_value)
+
 
 	if ((int(array[x][11:17]) - int(array[x+1][11:17]) > 100) and (int(array[x+1][11:17]) - int(array[x+2][11:17]) > 100) and (firsthalf_count == False)): 
 		if(first_time ==True): 
@@ -131,13 +148,8 @@ if count > 0:
 		squeeze_strength_num = int(squeeze_strength[y][11:17])
 		array2.append(squeeze_strength_num)
 
-	#efficiency =  (max_value - (sum(array2)/len(array2))) *100	/  (max_value - min_value)
-	"""
-	k = 3
-	exp_parameter = ((sum(array2)/len(array2)) - min_value)/(max_value - min_value)
-	efficiency = 100 * exp(-(k*exp_parameter))
-	"""
 	efficiency =  (max_value - (sum(array2)/len(array2)))**2 *100	/  (max_value - min_value)**2
+
 
 	print("your efficiency in this work out was ", efficiency, "%")
 else:
