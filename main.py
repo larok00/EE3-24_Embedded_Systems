@@ -1,12 +1,10 @@
 #Embedded system project EE3-24
-
 from machine import Pin, I2C, unique_id, sleep
 from ujson import dumps						#for messages formatting in JSON
 import network								#establishing network connection
 from math import exp		#KORAL: can we delete this now?
 from umqtt.simple import MQTTClient			#establishing MQTT connection
 import utime								#to measure the time elapsed in using flexo
-
 
 def read_data(i2c):									#to receive data
 	data = i2c.readfrom(72, 2)						#reading bytes
@@ -19,10 +17,8 @@ def create_payload(exercise_no, cycle_count, rate, efficiency):
 		"count" : cycle_count,
 		"rate" : rate,
 		"efficiency" : efficiency,
-	}
-	
-	payload = dumps(summary)
-	
+	}	
+	payload = dumps(summary)	
 	return payload
 
 def publish(payload, client):								
@@ -45,7 +41,6 @@ def main(i2c, led_red, led_green):
 	min_value = 13200				#the minimum raw data reading we get through testing (with flexsensor unbent)
 	
 	start= utime.ticks_ms()			 #start measuring time as soon as someone starts using flexo
-	
 	
 	payload = read_data(i2c)		#array is null and we need two extra elements in array to do comparisons later on
 	max_value = payload				#the maximum raw data reading we get through testing (with flexsensor highly bent)
@@ -89,7 +84,6 @@ def main(i2c, led_red, led_green):
 
 		utime.sleep(0.1)						#adding delay for 1/10 th of a second 
 	
-	
 	if cycle_count > 0:												#if the user has used flexo
 		stop = utime.ticks_ms() - 5000 								#stop measuring time; 5 seconds when user wasn't exercising are subtracted
 		time_diff= utime.ticks_diff(stop,start)
@@ -111,7 +105,6 @@ def main(i2c, led_red, led_green):
 	return payload
 
 #initial setup
-
 
 i2c = I2C(scl=Pin(5), sda=Pin(4), freq=100000)
 
