@@ -12,9 +12,9 @@ import org.eclipse.paho.client.mqttv3.*;
 public class MqttHelper {
     public MqttAndroidClient mqttAndroidClient;
 
-    final String serverUri = "ssl://192.168.0.10";
+    final String serverUri = "tcp://192.168.0.10:1883";
 
-    final String clientId = "ExampleAndroidClient";
+    final String clientId = "AndroidClient";
     final String subscriptionTopic = "esys/Embedded_girls(and_Koral)/flex";
 
     public MqttHelper(Context context){
@@ -32,7 +32,7 @@ public class MqttHelper {
 
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                Log.w("Mqtt", mqttMessage.toString());
+                Log.w("Mqtt flexor", mqttMessage.toString());
             }
 
             @Override
@@ -65,6 +65,7 @@ public class MqttHelper {
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
                     subscribeToTopic();
+                    Log.w("Mqtt", "Succeeded to connect to: " + subscriptionTopic);
                 }
 
                 @Override

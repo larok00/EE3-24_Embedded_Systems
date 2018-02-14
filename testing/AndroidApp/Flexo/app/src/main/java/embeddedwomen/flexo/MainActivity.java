@@ -21,22 +21,14 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView myTextView;
     MqttHelper mqttHelper;
-    int[] values = new int[3];
+    int[] values = new int[4];
+    int exercise_tmp = 0;
     String messages = new String();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Set up the ViewPager with the sections adapter.
-        myTextView = (TextView) findViewById(R.id.flexoData);
-
-        messages = "2";
-        values[0] = Integer.parseInt(messages);
-        values[1] = 0;
-        values[2] = 42;
-        myTextView.setText(getString(R.string.section_1, values[0], values[1], values[2]));
 
         startMqtt();
     }
@@ -56,9 +48,23 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                Log.w("Debug", mqttMessage.toString());
                 messages = mqttMessage.toString();
-                //mViewPager.setText(mqttMessage.toString());
+                Log.w("Debug", messages);
+
+                // Set up the ViewPager with the sections adapter.
+                myTextView = (TextView) findViewById(R.id.flexoData);
+
+                String arr[] = messages.split(" ");
+                values[0] = Integer.parseInt(arr[1]);
+                values[1] = Integer.parseInt(arr[3]);
+                values[2] = Integer.parseInt(arr[5]);
+                values[3] = Integer.parseInt(arr[7]);
+                Log.w("Debug", "Result of split: " + String.valueOf(values[1]) + " " + String.valueOf(values[3]));
+                if(values[2] != exercise_tmp) {
+                    Log.w("Debug", "The text is about to be changed");
+                    myTextView.setText(getString(R.string.section_1, values[0], values[1], values[3]));
+                    exercise_tmp = values[2];
+                }
             }
 
             @Override
