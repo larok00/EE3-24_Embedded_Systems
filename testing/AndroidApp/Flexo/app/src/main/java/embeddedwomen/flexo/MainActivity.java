@@ -21,8 +21,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView myTextView;
     MqttHelper mqttHelper;
-    int[] values = new int[4];
-    int exercise_tmp = 0;
+    String[] values = new String[4];
+    String exercise_tmp = "0";
     String messages = new String();
 
     @Override
@@ -53,16 +53,16 @@ public class MainActivity extends AppCompatActivity {
 
                 // Set up the ViewPager with the sections adapter.
                 myTextView = (TextView) findViewById(R.id.flexoData);
-
                 String arr[] = messages.split(" ");
-                values[0] = Integer.parseInt(arr[1]);
-                values[1] = Integer.parseInt(arr[3]);
-                values[2] = Integer.parseInt(arr[5]);
-                values[3] = Integer.parseInt(arr[7]);
-                Log.w("Debug", "Result of split: " + String.valueOf(values[1]) + " " + String.valueOf(values[3]));
+                values[0] = arr[1].split(",")[0];
+                values[1] = arr[3].split(",")[0];
+                values[2] = arr[5].split(",")[0];
+                Log.w("Debug", "Result of split: " + values[0] + " " + values[1]);
+                values[3] = arr[7].split(",")[0].split("\\}")[0];
+                Log.w("Debug", "Result of split: " + values[3]);
                 if(values[2] != exercise_tmp) {
                     Log.w("Debug", "The text is about to be changed");
-                    myTextView.setText(getString(R.string.section_1, values[0], values[1], values[3]));
+                    myTextView.setText(getString(R.string.section_1, values[3], values[0], values[1]));
                     exercise_tmp = values[2];
                 }
             }
