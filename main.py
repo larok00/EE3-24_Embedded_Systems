@@ -2,7 +2,6 @@
 from machine import Pin, I2C, unique_id, sleep
 from ujson import dumps						#for messages formatting in JSON
 import network								#establishing network connection
-from math import exp		#KORAL: can we delete this now?
 from umqtt.simple import MQTTClient			#establishing MQTT connection
 import utime								#to measure the time elapsed in using flexo
 
@@ -30,6 +29,8 @@ def efficiency(reading, min_value, max_value):				#to calculate how efficient ea
 
 def main(i2c, led_red, led_green):
 	
+	timeout = 100					#equivalent to 10 seconds of inactivity
+	
 	cycle_count = 0
 	cycle = []
 	cycle_index = 0
@@ -38,17 +39,17 @@ def main(i2c, led_red, led_green):
 	squeeze_strength = []
 	
 	#threshold values
-	min_value = 13200				#the minimum raw data reading we get through testing (with flexsensor unbent)
+	min_value = 13200				#the minimum raw data reading we get through testing (with flexsensor highly bent)
 	
 	start= utime.ticks_ms()			 #start measuring time as soon as someone starts using flexo
 	
 	payload = read_data(i2c)		#array is null and we need two extra elements in array to do comparisons later on
-	max_value = payload				#the maximum raw data reading we get through testing (with flexsensor highly bent)
+	max_value = payload				#the maximum raw data reading we get through testing (with flexsensor unbent)
 	cycle.append(payload) 
 	payload = read_data(i2c)
 	cycle.append(payload)
 	
-	while cycle_index<50:			#KORAL: Change to 50 now that we aren't testing? 
+	while cycle_index<timeout:
 		
 		reading = read_data(i2c)
 		if efficiency(reading, min_value, max_value)< 60:
@@ -69,7 +70,7 @@ def main(i2c, led_red, led_green):
 				if efficiency(smallest_reading, min_value, max_value) > 25:		#your squeeze-and-release will only be counted if your efficiency is 25% (avoids minor vibrations)
 					cycle_count += 1
 					print("Cycle done")
-				squeeze_strength.append( smallest_reading )				#a list with all the readings we get when our squeeze is maximum per cycle
+				squeeze_strength.append( smallest_reading )				#a list with the maximum squeezes from each cycle as elements
 				
 				cycle = []						#after one complete squeeze-and-release cycle, cycle list is nulled
 				reading = read_data(i2c)		#array is null and we need two extra elements in array to do comparisons later on
@@ -85,7 +86,7 @@ def main(i2c, led_red, led_green):
 		utime.sleep(0.1)						#adding delay for 1/10 th of a second 
 	
 	if cycle_count > 0:												#if the user has used flexo
-		stop = utime.ticks_ms() - 5000 								#stop measuring time; 5 seconds when user wasn't exercising are subtracted
+		stop = utime.ticks_ms() - 100*timeout 						#stop measuring time; inactive time is subtracted
 		time_diff= utime.ticks_diff(stop,start)
 		rate = cycle_count/(time_diff/(1000*60))					#rate calculated
 		average_strength = float(sum(squeeze_strength))/float(len(squeeze_strength))		#average value of maximum squeeze for entire session calculated
@@ -96,7 +97,7 @@ def main(i2c, led_red, led_green):
 		print("your rate was ", rate, " squeeze-and-release per minute.")
 		print("your efficiency in this work out was ", average_efficiency, "%")
 		
-		payload = create_payload(exercise_no, cycle_count, rate, average_efficiency)  		#KORAL: dont know what to say/add 
+		payload = create_payload(exercise_no, cycle_count, rate, average_efficiency)  		#creates JSON file to send to broker
 		
 	else:												#if the user has not used flexo
 		print("Squeeze!")
@@ -126,12 +127,12 @@ client = MQTTClient(unique_id(), "192.168.0.10")
 
 #pins used on the ESP8266
 inputpin = Pin(14, Pin.IN, Pin.PULL_UP)			#used as a button: user presses the button before starting session
-led_start = Pin(16, Pin.OUT)					#KORAL: are we actually using this? if not can you delete
+led_start = Pin(16, Pin.OUT)					#on when not in a session
 led_red = Pin(2, Pin.OUT)						#red LED is on when the user is not squeezing "enough"
 led_green = Pin(0, Pin.OUT)						#green LED is on when the user is squeezing "enough"
 
 while True:
-	if (inputpin.value()==0):					#when button pressed (KORAL: right?)
+	if (inputpin.value()==0):					#when button pressed (inputpin is normally high, pressing button connects to ground)
 		client.connect()						
 		led_start.off()
 		payload = main(i2c, led_red, led_green)
@@ -143,4 +144,4 @@ while True:
 	led_red.off()
 	led_green.off()
 	led_start.on()
-	utime.sleep(0.5)				#KORAL: Why 0.5?
+	utime.sleep(0.5)				#machine.sleep() is not yet implemented for esp8266, so instead we use utime.sleep and check if button gets pressed
